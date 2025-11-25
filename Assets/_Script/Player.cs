@@ -115,9 +115,12 @@ public class Player : MonoBehaviour
     private void ClickCast(InputAction.CallbackContext context)
     {
         Debug.Log("Successful rightClick, attempting to cast");   
+
         Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Debug.DrawLine(ray.origin, ray.direction);
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ~propMask, QueryTriggerInteraction.Ignore))
         {
+            Debug.Log("Initial raycast hit");
             SpellContext ctx = CreateContext(hit);
             if (currentSpell.logic.CanCast(ctx))
             {
@@ -135,9 +138,10 @@ public class Player : MonoBehaviour
     /// <returns>SpellContext needed for Cast in SpellLogic derived scripts.</returns>
     private SpellContext CreateContext(RaycastHit hit)
     {
-        SpellContext ctx = new SpellContext();
-
-        ctx.spellCaster = this.gameObject;
+        SpellContext ctx = new SpellContext()
+        {
+            spellCaster = this.gameObject
+        };
 
         //First ray (done when first casting): hits topmost collider, no masks so this can be used for collisions, could also be ground but will be ignored in Spell logic unless ground
         RaycastHit hitAny = hit;
@@ -189,7 +193,7 @@ public class Player : MonoBehaviour
                 }
                 else
                 {
-                    ctx.target = null; // ground clicked
+                    ctx.target = null; // ground clicked    
                     ctx.targetPoint = hitGround.point;
                 }
                 break;

@@ -55,7 +55,7 @@ public class Projectile : MonoBehaviour
 
                 //MUST have clicked an enemy
                 target = ctx.target;
-
+                Debug.Log($"Current target: {target.name} ");
                 //Hard Lcok means: NEVER change target while moving to target
                 //Soft Lock means: start with this target but allow target switching in FixedUpdate
             break;
@@ -73,7 +73,7 @@ public class Projectile : MonoBehaviour
                     target = FindClosestEnemy();
                 }
             break;
-    }
+        }
 
     }
 
@@ -100,7 +100,7 @@ public class Projectile : MonoBehaviour
             desiredDir = Vector3.Lerp( transform.forward, desiredDir, homingStrength * Time.deltaTime ).normalized;
         }
 
-        transform.position += desiredDir * speed * Time.deltaTime;
+        transform.position += speed * Time.deltaTime * desiredDir;
 
         if (Vector3.Distance(transform.position, destination) < 0.2f)
         {

@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: TestProjectileSpell
   m_EditorClassIdentifier: 
   spellInfo: {fileID: 11400000, guid: 964547f2fb296be48abb17d559bf9b4b, type: 2}
-  projectileSpeed: 1
+  projectileSpeed: 10
   impactDamage: 50
   isAoE: 0
   aoeRange: 2
   AoEDamage: 15
-  isHoming: 1
-  homingStrength: 0.2
+  isHoming: 0
+  enemyHardLock: 0
+  homingStrength: 50

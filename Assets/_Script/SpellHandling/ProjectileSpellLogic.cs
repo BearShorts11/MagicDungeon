@@ -19,6 +19,7 @@ public class ProjectileSpellLogic : SpellLogic
 
     public override bool CanCast(SpellContext ctx) //Doesn't currently allow for enemy spell casters
     {
+        Debug.Log("Checking Can Cast");
         if (ctx == null) return false; //Did the player make SpellContext for the spell
         if (Player.instance.mana < ctx.spellInfo.manaCost) return false; //check player's mana if they can cast the Player's currentSpell 
         if (!IsRangeValid(ctx)) return false; 

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: TestProjInfo
   m_EditorClassIdentifier: 
   spellName: Test
-  targetingType: 0
+  targetingType: 2
   maxRange: 30
   clampToMaxRange: 1
   manaCost: 0
