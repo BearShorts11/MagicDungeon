@@ -1,0 +1,77 @@
+using UnityEngine;
+
+[CreateAssetMenu(menuName = "Spell/Logic/Projectile")]
+public class ProjectileSpellLogic : SpellLogic
+{
+    [SerializeField]
+    private SpellInfo spellInfo;
+
+    public float projectileSpeed;
+    public float impactDamage = 10f;
+    
+    public bool isAoE = false;
+    public float aoeRange = 2f;
+    public float AoEDamage = 15f;
+
+    public bool isHoming = false;
+    public bool enemyHardLock = false; //Used in projectile script
+    public float homingStrength = 0.2f;
+
+    public override bool CanCast(SpellContext ctx) //Doesn't currently allow for enemy spell casters
+    {
+        if (ctx == null) return false; //Did the player make SpellContext for the spell
+        if (Player.instance.mana < ctx.spellInfo.manaCost) return false; //check player's mana if they can cast the Player's currentSpell 
+        if (!IsRangeValid(ctx)) return false; 
+
+        return true;
+    }
+
+    public override void Cast(SpellContext ctx)
+    {
+        if (ctx == null) return;
+        ctx.spellInfo = spellInfo;
+
+        Player.instance.mana -= ctx.spellInfo.manaCost;
+
+        //Spawn projectile facing the target point from caster
+        Vector3 spawnPos = ctx.spellCaster.transform.position;
+        //teavels either to center of enemy or ground
+        Vector3 destination = (ctx.target != null) ? ctx.target.transform.position : ctx.targetPoint;
+        //used to point projectile toward destination
+        Quaternion rot = Quaternion.LookRotation( (destination - spawnPos).normalized );
+
+        var go = Instantiate(spellInfo.projectilePrefab, spawnPos, rot);
+
+        var projectile = go.GetComponent<Projectile>();
+        projectile.Init(ctx, this);
+    }
+
+    /// <summary>
+    /// Checks projectile's distance to target
+    /// </summary>
+    /// <param name="ctx"></param>
+    /// <returns></returns>
+    protected virtual bool IsRangeValid(SpellContext ctx)
+    {
+
+        switch (ctx.spellInfo.targetingType)
+        {
+            case TargetingType.PointOrEnemy: //doesn't matter if it's an enemy or just ground; moves forward through code
+                break;
+
+            case TargetingType.EnemyOnly:
+                if (ctx.target == null)
+                {
+                    Debug.LogError("No target");
+                    return false;
+                }
+                else
+                {
+                    ctx.target.GetComponent<Enemy>();
+                }
+                break;
+        }
+
+        return ctx.distanceToPoint <= ctx.spellInfo.maxRange; //is the target's pos less than or equal to the spell's max range
+    }
+}

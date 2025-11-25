@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca60b3f6c965f6e4aaf19c0ea20ff05d, type: 3}
+  m_Name: TestProjInfo
+  m_EditorClassIdentifier: 
+  spellName: Test
+  targetingType: 0
+  maxRange: 30
+  clampToMaxRange: 1
+  manaCost: 0
+  cooldown: 0
+  projectilePrefab: {fileID: 1411902582772296919, guid: 71103bf12bad5904fa9b38f80b36176e, type: 3}
+  logic: {fileID: 11400000, guid: 5a2e6e3cc7c7c3d48bafcbe1e6f2a6e1, type: 2}
