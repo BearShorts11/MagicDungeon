@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1bf56c7f6ec9194aa2ce637e54bae58, type: 3}
+  m_Name: HealthToManaLogic
+  m_EditorClassIdentifier: 
+  spellInfo: {fileID: 11400000, guid: 47dc96e5a7e5b3342934fac27960eb6a, type: 2}
+  healthCost: 15
+  manaCost: 0
+  healthGain: 0
+  manaGain: 10
+  speedBoost: 0
+  damageBoost: 0
+  duration: 0
+  healthRegenModifier: 0
+  manaRegenModifier: 0
+  particleEffect: {fileID: 2500577079615130118, guid: af831e4dbbed05a41b95e18a19b99683, type: 3}

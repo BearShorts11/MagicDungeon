@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b1bf56c7f6ec9194aa2ce637e54bae58, type: 3}
-  m_Name: HealLogic
+  m_Name: ManaToHealLogic
   m_EditorClassIdentifier: 
   spellInfo: {fileID: 11400000, guid: a32a87f5c82b07b469e721377d621b94, type: 2}
   healthCost: 0

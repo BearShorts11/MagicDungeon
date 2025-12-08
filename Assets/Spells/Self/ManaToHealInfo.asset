@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca60b3f6c965f6e4aaf19c0ea20ff05d, type: 3}
-  m_Name: HealInfo
+  m_Name: ManaToHealInfo
   m_EditorClassIdentifier: 
   spellName: Heal
   targetingType: 3

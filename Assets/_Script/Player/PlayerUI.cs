@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEngine.InputSystem;
 
 public class PlayerUI : MonoBehaviour
 {
@@ -59,7 +60,7 @@ public class PlayerUI : MonoBehaviour
         manaText.text = $"{p.mana.ToString()}/50";
         UpdateMessages();
     }
-    
+    #region Notification Box
     // Update the UI text each frame
     private void UpdateMessages()
     {
@@ -121,4 +122,5 @@ public class PlayerUI : MonoBehaviour
         public string text;
         public float timestamp;
     }
+    #endregion
 }
