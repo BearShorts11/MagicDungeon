@@ -10,13 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca60b3f6c965f6e4aaf19c0ea20ff05d, type: 3}
-  m_Name: TestProjInfo
+  m_Name: SeekerInfo
   m_EditorClassIdentifier: 
-  spellName: Test
-  targetingType: 0
-  maxRange: 50
+  spellName: Seeker
+  targetingType: 1
+  maxRange: 20
   clampToMaxRange: 0
   manaCost: 1
-  cooldown: 0
-  projectilePrefab: {fileID: 1411902582772296919, guid: 71103bf12bad5904fa9b38f80b36176e, type: 3}
-  logic: {fileID: 11400000, guid: 5a2e6e3cc7c7c3d48bafcbe1e6f2a6e1, type: 2}
+  cooldown: 2
+  logic: {fileID: 11400000, guid: f12c8d2b5b4355d45bdb09fa2523d68a, type: 2}

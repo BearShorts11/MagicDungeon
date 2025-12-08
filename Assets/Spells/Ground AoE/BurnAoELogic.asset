@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f08b7cdc668da54ba6691a2624a22c9, type: 3}
+  m_Name: BurnAoELogic
+  m_EditorClassIdentifier: 
+  spellInfo: {fileID: 11400000, guid: eae8973a1821502469b5cc51675b790d, type: 2}
+  spawnAoE: 1
+  aoePrefab: {fileID: 7086111894349268953, guid: 840f95e07508c694f8e05a5705a652fc, type: 3}
+  aoeDuration: 5
+  aoeDamagePerSecond: 10
+  aoeRadius: 5
+  summonPrefab: {fileID: 0}

@@ -14,13 +14,15 @@ public class SpellInfo : ScriptableObject
 
     public TargetingType targetingType;
 
+    //allow or don't allow cast of spell if target is outside of range
+    //kind of pointless since I do a check in logic scripts but keeping for now, might re-use
     public float maxRange = 10f;
     public bool clampToMaxRange = true;
 
+    [Header("Resource Cost")]
+
     public int manaCost;
     public float cooldown;
-
-    public GameObject projectilePrefab; // Can contain a particle system, line renderer etc.
 
     public SpellLogic logic;
 }

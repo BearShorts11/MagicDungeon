@@ -6,6 +6,7 @@ public class ProjectileSpellLogic : SpellLogic
     [SerializeField]
     private SpellInfo spellInfo;
 
+    [Header("Spell Options")]
     public float projectileSpeed;
     public float impactDamage = 10f;
     
@@ -16,13 +17,22 @@ public class ProjectileSpellLogic : SpellLogic
     public bool isHoming = false;
     public bool enemyHardLock = false; //Used in projectile script
     public float homingStrength = 0.2f;
+    [Tooltip("How wide, in a cone, will this projectile home onto a target if homing.")]
+    public float homingAngle;
+
+    public float lifeTime = 2f;
+    public GameObject projectilePrefab; // Can contain a particle system, line renderer etc.
 
     public override bool CanCast(SpellContext ctx) //Doesn't currently allow for enemy spell casters
     {
-        Debug.Log("Checking Can Cast");
+        //Debug.Log("Checking Can Cast");
         if (ctx == null) return false; //Did the player make SpellContext for the spell
-        if (Player.instance.mana < ctx.spellInfo.manaCost) return false; //check player's mana if they can cast the Player's currentSpell 
-        if (!IsRangeValid(ctx)) return false; 
+        if (Player.instance.mana < ctx.spellInfo.manaCost) //check player's mana if they can cast the Player's currentSpell 
+        {
+            PlayerUI.s.AddMessage("Not Enough Mana!");
+            return false;
+        }
+        if (!IsRangeValid(ctx)) return false;
 
         return true;
     }
@@ -41,10 +51,12 @@ public class ProjectileSpellLogic : SpellLogic
         //used to point projectile toward destination
         Quaternion rot = Quaternion.LookRotation( (destination - spawnPos).normalized );
 
-        var go = Instantiate(spellInfo.projectilePrefab, spawnPos, rot);
+        var go = Instantiate(projectilePrefab, spawnPos, rot);
 
         var projectile = go.GetComponent<Projectile>();
         projectile.Init(ctx, this);
+
+        projectile.Invoke(nameof(projectile.Die), lifeTime);
     }
 
     /// <summary>
@@ -63,7 +75,7 @@ public class ProjectileSpellLogic : SpellLogic
             case TargetingType.EnemyOnly:
                 if (ctx.target == null)
                 {
-                    Debug.LogError("No target");
+                    PlayerUI.s.AddMessage("No Enemy Clicked or Out of Range!");
                     return false;
                 }
                 else

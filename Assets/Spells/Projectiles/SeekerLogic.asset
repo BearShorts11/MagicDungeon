@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d0412b9ee238a7145bda3482650467ae, type: 3}
-  m_Name: TestProjectileSpell
+  m_Name: SeekerLogic
   m_EditorClassIdentifier: 
-  spellInfo: {fileID: 11400000, guid: 964547f2fb296be48abb17d559bf9b4b, type: 2}
-  projectileSpeed: 10
+  spellInfo: {fileID: 11400000, guid: 751ade1c864b06843a0ac18e736b90a4, type: 2}
+  projectileSpeed: 15
   impactDamage: 10
   isAoE: 0
-  aoeRange: 2
-  AoEDamage: 15
+  aoeRange: 0
+  AoEDamage: 0
   isHoming: 1
   enemyHardLock: 1
-  homingStrength: 35
-  homingAngle: 45
-  lifeTime: 3
-  projectilePrefab: {fileID: 1411902582772296919, guid: 71103bf12bad5904fa9b38f80b36176e, type: 3}
+  homingStrength: 25
+  homingAngle: 90
+  lifeTime: 5
+  projectilePrefab: {fileID: 1152190448390232907, guid: fae4811a6ef34f14c92a6b8398989124, type: 3}

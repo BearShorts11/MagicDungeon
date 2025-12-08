@@ -11,9 +11,9 @@ public class Projectile : MonoBehaviour
     private GameObject target;
     private Vector3 targetPoint;
     private float speed;
-    
+
     private float impactDamage;
-    
+
     private bool isAoE;
     private float aoeRange;
     private float aoeDamage;
@@ -22,6 +22,7 @@ public class Projectile : MonoBehaviour
     private bool isHoming;
     private bool enemyHardLock;
     private float homingStrength;
+    private float homingAngle;
 
     int propMask;
 
@@ -34,11 +35,11 @@ public class Projectile : MonoBehaviour
     //Gets all relevant data from context from Player->ProjectileSpellLogic (passes ctx and itself) ->Projectile
     public void Init(SpellContext ctx, ProjectileSpellLogic logic)
     {
-
+        //it occurs to me I could have just made two class variables and plug these in
 
         speed = logic.projectileSpeed;
         impactDamage = logic.impactDamage;
-        
+
         isAoE = logic.isAoE;
         aoeRange = logic.aoeRange;
         aoeDamage = logic.AoEDamage;
@@ -46,6 +47,7 @@ public class Projectile : MonoBehaviour
         isHoming = logic.isHoming;
         enemyHardLock = logic.enemyHardLock;
         homingStrength = logic.homingStrength;
+        homingAngle = logic.homingAngle;
 
         targetPoint = ctx.targetPoint;
 
@@ -55,10 +57,10 @@ public class Projectile : MonoBehaviour
 
                 //MUST have clicked an enemy
                 target = ctx.target;
-                Debug.Log($"Current target: {target.name} ");
-                //Hard Lcok means: NEVER change target while moving to target
-                //Soft Lock means: start with this target but allow target switching in FixedUpdate
-            break;
+                Debug.Log($"Current target: {target.name} "); //just making sure the enemy I clicked is actually assigned
+                                                              //Hard Lcok means: NEVER change target while moving to target
+                                                              //Soft Lock means: start with this target but allow target switching in FixedUpdate
+                break;
 
             case TargetingType.PointOrEnemy:
 
@@ -72,7 +74,7 @@ public class Projectile : MonoBehaviour
                     //clicked ground get nearest enemy for homing (if homing is true)
                     target = FindClosestEnemy();
                 }
-            break;
+                break;
         }
 
     }
@@ -80,37 +82,51 @@ public class Projectile : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // SOFT LOCK: reacquire nearest enemy while flying
+
+        GameObject currentTarget = null;
+
+        // Soft Homing (homes but not hard lock)
         if (isHoming && !enemyHardLock)
         {
-            var nearest = FindClosestEnemy();
-
-            if (nearest != null)
-                target = nearest;
+            currentTarget = FindClosestEnemy();
         }
 
-        //determine destination; if no target (ground) set to right, else set to left
-        Vector3 destination = (target != null) ? target.transform.position : targetPoint;
+        // Hard Lock (homes and hard locks; checks target for enemy GO)
+        else if (isHoming && enemyHardLock && target != null)
+        {
+            currentTarget = target;
+        }
 
-        //turning
+        // Not Homing (not homing / hard locking)
+        else
+        {
+            currentTarget = null;  // use targetPoint instead
+        }
+
+        //where to go (if currentTarget isn't null, go to that pos, else go to target point aka ground)
+        Vector3 destination = (currentTarget != null) ? currentTarget.transform.position : targetPoint;
+
         Vector3 desiredDir = (destination - transform.position).normalized;
 
-        if (isHoming && target != null)
+        //only home turn if actively homing on something
+        if (isHoming && currentTarget != null)
         {
-            desiredDir = Vector3.Lerp( transform.forward, desiredDir, homingStrength * Time.deltaTime ).normalized;
+            desiredDir = Vector3.Lerp(transform.forward, desiredDir, homingStrength * Time.deltaTime).normalized;
         }
 
+        //Move forward
         transform.position += speed * Time.deltaTime * desiredDir;
 
         if (Vector3.Distance(transform.position, destination) < 0.2f)
         {
             OnImpact();
         }
+
     }
 
     private void OnImpact() //Impact is by distance
     {
-        //we're only looking for enemies, try allows failure
+        // we're only looking for enemies, try allows failure
         if (target != null && target.TryGetComponent(out Enemy directHit))
         {
             directHit.TakeDamage(impactDamage);
@@ -148,7 +164,7 @@ public class Projectile : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private bool HasLineOfSight(Vector3 origin, Transform targetTransform)
+    private bool HasLineOfSight(Vector3 origin, Transform targetTransform) //TO DO: do enemy layer
     {
         Vector3 direction = (targetTransform.position - origin).normalized;
         float distance = Vector3.Distance(origin, targetTransform.position);
@@ -172,29 +188,37 @@ public class Projectile : MonoBehaviour
     {
         float bestDist = Mathf.Infinity;
         GameObject bestEnemy = null;
-    
+
+        float halfAngle = homingAngle * 0.5f;
+
         Collider[] hits = Physics.OverlapSphere(transform.position, 50f);
-    
+
         foreach (var hit in hits)
         {
             if (hit.TryGetComponent(out Enemy enemy))
             {
+                Vector3 dirToEnemy = (hit.transform.position - transform.position).normalized;
                 float dist = Vector3.Distance(transform.position, hit.transform.position);
-    
-                if (dist < bestDist)
+
+                float angle = Vector3.Angle(transform.forward, dirToEnemy);
+
+                if (angle <= halfAngle)
                 {
-                    bestDist = dist;
-                    bestEnemy = hit.gameObject;
+                    if (dist < bestDist)
+                    {
+                        bestDist = dist;
+                        bestEnemy = hit.gameObject;
+                    }
                 }
             }
         }
-    
+
         return bestEnemy;
     }
 
     private void OnCollisionEnter(Collision coll)
     {
-        if(coll != null)
+        if (coll != null)
         {
             //if we hit an enemy, try to get its script and apply damage
             //if no script, error but destroy regardless
@@ -215,6 +239,31 @@ public class Projectile : MonoBehaviour
                 Destroy(gameObject);
             }
         }
+    }
+
+    public void Die()
+    {
+        Destroy(this.gameObject);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+
+        float halfAngle = homingAngle * 0.5f;
+        Vector3 forward = transform.forward; //local forward
+
+        // left side of cone
+        Quaternion leftRot = Quaternion.AngleAxis(-halfAngle, Vector3.up);
+        Gizmos.DrawRay(transform.position, leftRot * forward * 5f);
+
+        //right side of cone
+        Quaternion rightRot = Quaternion.AngleAxis(halfAngle, Vector3.up);
+        Gizmos.DrawRay(transform.position, rightRot * forward * 5f);
+
+        // middle ray for better distinction
+        Gizmos.color = Color.white;
+        Gizmos.DrawRay(transform.position, forward * 5f);
     }
 }
 

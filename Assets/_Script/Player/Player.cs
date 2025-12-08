@@ -2,6 +2,7 @@ using System.Net;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -11,11 +12,26 @@ public class Player : MonoBehaviour
     [SerializeField]
     private Camera playerCamera;
     [SerializeField]
-    private NavMeshAgent playerNavAgent;
+    public NavMeshAgent playerNavAgent;
+    #region Input
     [SerializeField]
     private InputAction leftClick;
     [SerializeField]
     private InputAction rightClick;
+    [SerializeField]
+    private InputAction spell1Key;
+    [SerializeField]
+    private InputAction spell2Key;
+    [SerializeField]
+    private InputAction spell3Key;
+    [SerializeField]
+    private InputAction spell4Key;
+
+    private System.Action<InputAction.CallbackContext> spell1Delegate;
+    private System.Action<InputAction.CallbackContext> spell2Delegate;
+    private System.Action<InputAction.CallbackContext> spell3Delegate;
+    private System.Action<InputAction.CallbackContext> spell4Delegate;
+    #endregion
 
     int groundMask; //for ground only raycast
     int ignoreMask; //Assigned in awake for now; will need to update mask when a new scene is loaded
@@ -28,14 +44,21 @@ public class Player : MonoBehaviour
     int currentSpellIndex = 0; //used for checking player's current list of spells
     
     [SerializeField]
-    SpellInfo currentSpell;
+    public SpellInfo currentSpell;
+
+    [SerializeField]
+    private SpellInfo[] spellSlots = new SpellInfo[4]; //max of 4 spells
+
+    #region Player Stats
+
+    // Regen modifers set to 1 to act as percentages and allows base regen
 
     [SerializeField]
     private float _health;
-    private float _healthRegenModifier;
+    private float _healthRegenModifier = 1f;
     [SerializeField]
     private float _mana;
-    private float _manaRegenModifier;
+    private float _manaRegenModifier = 1f;
 
     public float health
     {
@@ -61,6 +84,16 @@ public class Player : MonoBehaviour
         set { _manaRegenModifier = value; }
     }
 
+    [Header("Regen Settings")]
+
+    [SerializeField] 
+    private float baseHealthRegen = 1f;
+    [SerializeField] 
+    private float baseManaRegen = 1f;
+    [SerializeField] 
+    private float regenInterval = 2f;
+    #endregion
+
     private void Awake()
     {
         instance = this;
@@ -79,9 +112,17 @@ public class Player : MonoBehaviour
         ignoreEnemyTriggerMask = LayerMask.GetMask("Ignore Raycast");
 
         ignoreMask = ~propMask & ~wallMask & ~ignoreEnemyTriggerMask;
+
+        spell1Delegate = ctx => SelectSpell(0);
+        spell2Delegate = ctx => SelectSpell(1);
+        spell3Delegate = ctx => SelectSpell(2);
+        spell4Delegate = ctx => SelectSpell(3);
     }
-
-
+    //avoiding any stats not being initialized before running regentick
+    private void Start()
+    {
+        InvokeRepeating(nameof(RegenTick), regenInterval, regenInterval);
+    }
 
     private void OnEnable()
     {
@@ -90,21 +131,38 @@ public class Player : MonoBehaviour
 
         rightClick.Enable();
         rightClick.performed += ClickCast;
+
+        spell1Key.Enable();
+        spell1Key.performed += spell1Delegate;
+        spell2Key.Enable();
+        spell2Key.performed += spell2Delegate;
+        spell3Key.Enable();
+        spell3Key.performed += spell3Delegate;
+        spell4Key.Enable();
+        spell4Key.performed += spell4Delegate;
     }
 
     private void OnDisable()
     {
         leftClick.Disable();
         leftClick.performed -= ClickMove;
-
         rightClick.Disable();
         rightClick.performed -= ClickCast;
+
+        spell1Key.Disable();
+        spell1Key.performed -= spell1Delegate;
+        spell2Key.Disable(); 
+        spell2Key.performed -= spell2Delegate;
+        spell3Key.Disable(); 
+        spell3Key.performed -= spell3Delegate;
+        spell4Key.Disable();
+        spell4Key.performed -= spell4Delegate;
     }
-    
+
     private void ClickMove(InputAction.CallbackContext context)
     {
         Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-
+        Debug.DrawRay(ray.origin, ray.direction, Color.black);
         if (Physics.Raycast(ray, out RaycastHit hit, 100f, groundMask))
         {
             playerNavAgent.SetDestination(hit.point);
@@ -114,13 +172,10 @@ public class Player : MonoBehaviour
     
     private void ClickCast(InputAction.CallbackContext context)
     {
-        Debug.Log("Successful rightClick, attempting to cast");   
-
         Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-        Debug.DrawLine(ray.origin, ray.direction);
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ~propMask, QueryTriggerInteraction.Ignore))
         {
-            Debug.Log("Initial raycast hit");
+            Debug.DrawLine(ray.origin, hit.point, Color.black, 1f); //true click ray
             SpellContext ctx = CreateContext(hit);
             if (currentSpell.logic.CanCast(ctx))
             {
@@ -161,7 +216,7 @@ public class Player : MonoBehaviour
                     Enemy enemy = hitAny.collider.GetComponentInParent<Enemy>();
                     if (enemy != null)
                     {
-                        Debug.Log("EnemyOnly hit!\nSetting enemy as target!");
+                        //Debug.Log("EnemyOnly hit!\nSetting enemy as target!"); // Checking if I was actually hitting an enemy with targetType
                         ctx.target = enemy.gameObject;
                         ctx.targetPoint = enemy.transform.position;
                     }
@@ -187,7 +242,6 @@ public class Player : MonoBehaviour
                 //Allows a spell to hit either a point or enemy
                 if (hitAny.collider != null && hitAny.collider.CompareTag("Enemy"))
                 {
-                    Debug.Log("PointOrEnemy spell clicked an enemy!");
                     ctx.target = hitAny.collider.gameObject; // enemy clicked
                     ctx.targetPoint = hitAny.collider.gameObject.transform.position;
                 }
@@ -198,11 +252,67 @@ public class Player : MonoBehaviour
                 }
                 break;
         }
+       /* if (ctx.target != null && ctx.target.tag == "Enemy")
+        {
+            Debug.DrawLine(Camera.main.transform.position, ctx.target.transform.position, Color.red, 2f); //For enemies 
+        }
+        Debug.DrawLine(Camera.main.transform.position, ctx.targetPoint, Color.HSVToRGB(30f, 100f, 38.43f), 2f); //draws brown to ground
+       */ //Only for checking type with ray
 
         ctx.distanceToPoint = Vector3.Distance(ctx.spellCaster.transform.position, ctx.targetPoint);
 
         ctx.spellInfo = currentSpell;
 
         return ctx;
+    }
+    /// <summary>
+    /// Method for spell selecting by player
+    /// </summary>
+    /// <param name="index">spell index number</param>
+    private void SelectSpell(int index)
+    {
+        if (index < 0 || index >= spellSlots.Length)
+        {
+            Debug.LogWarning("Invalid spell index " + index);
+            return;
+        }
+
+        if (spellSlots[index] == null)
+        {
+            Debug.LogWarning($"No spell assigned to slot {index + 1}");
+            return;
+        }
+
+        currentSpellIndex = index;
+        currentSpell = spellSlots[index];
+
+        Debug.Log($"Selected spell {index + 1}: {currentSpell.spellName}");
+    }
+
+    public void TakeDamage(float damage)
+    {
+        Debug.Log($"Taking {damage} damage!");
+        instance.health -= damage;
+        if(instance.health <= 0)
+        {
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        PlayerUI.s.AddMessage("You Died!");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private void RegenTick()
+    {
+        // Health regen
+        float healthGain = baseHealthRegen * healthRegenModifier;
+        health = Mathf.Min(health + healthGain, 100f); //No overhealing unless explicitly overheal, not implemented, but regen should never go over 100
+
+        // Mana regen
+        float manaGain = baseManaRegen * manaRegenModifier;
+        mana = Mathf.Min(mana + manaGain, 50f); //No over-mana in general
     }
 }
